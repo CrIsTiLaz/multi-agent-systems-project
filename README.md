@@ -1,81 +1,67 @@
 # Multi-Agent Supply Chain Inventory Simulation
 
-Agent-based simulation of a multi-tier supply chain built with Python and Mesa. Autonomous agents exchange orders and shipments across customers, retailers, a warehouse, a manufacturer, and logistics. The model studies how stochastic demand propagates upstream, how inventory policies perform under lead times and capacity limits, and how the **bullwhip effect** amplifies order variability.
+## 1. Project Problem Domain
 
-## Problem Domain
+This project simulates a multi-tier supply chain network for studying dynamic inventory management. The system models one product moving from a manufacturer to a warehouse, then to retailers, and finally to customers.
 
-Supply chains often react to small changes in customer demand with much larger swings in orders placed by retailers, warehouses, and manufacturers. That **demand amplification** is the bullwhip effect. It is driven by delayed information, batch reordering, and limited production or transport capacity.
+The main problem studied is the **bullwhip effect**: small changes in customer demand can create much larger changes in upstream orders placed by retailers, warehouses, and manufacturers. The simulation also tracks stockouts, inventory holding costs, stochastic customer demand, delivery lead times, and manufacturer production capacity.
 
-This project simulates that behavior in a simplified network:
+The goal is to observe how decentralized agents, each using local information, affect inventory performance and upstream order volatility. The model produces metrics such as service level, stockout rate, holding cost, inventory levels, and bullwhip ratios.
 
-- **Goal:** minimize stockouts and holding cost while observing (and comparing policies that affect) upstream order volatility.
-- **Constraints:** fixed lead times, daily production capacity, decentralized decisions (each agent uses only local state and neighbor messages).
-- **Outputs:** service level, stockout rate, inventory levels, holding cost, and bullwhip ratios (variance of upstream orders vs. customer demand).
+## 2. Project Architecture
 
-One product, one simulated day per step, stochastic customer demand (uniform random units per customer per day).
-
-## Architecture
-
-The system is a **discrete-time** simulation orchestrated by `SupplyChainModel` (`model.py`). Agents do not use a central planner; they communicate only with the **next tier**:
+The project is a discrete-time multi-agent simulation. One simulation step represents one day. Agents communicate only with neighboring supply chain tiers rather than using a central optimizer.
 
 ```text
-  [Customer] ──order──> [Retailer] ──replenish──> [Warehouse] ──produce──> [Manufacturer]
-       ^                    ^                         ^                        |
-       |                    |                         |                        |
-       └──── fulfill ───────┘                         └── shipments ─────────┘
-                                    [Logistics: in-transit queue, fixed lead times]
+Customer -> Retailer -> Warehouse -> Manufacturer
+              ^             ^              |
+              |             |              |
+              +------ Logistics: shipments and delivery delays
 ```
 
-| Component | Role |
-|-----------|------|
-| **CustomerAgent** | Generates daily demand; sends orders to an assigned retailer. |
-| **RetailerAgent** | Fulfills customer orders from stock; reorders from warehouse when below reorder point. |
-| **WarehouseAgent** | Fulfills retailer orders; reorders from manufacturer when below reorder point. |
-| **ManufacturerAgent** | Produces up to daily capacity; excess demand stays in backlog. |
-| **LogisticsAgent** | Creates shipments with fixed lead times; delivers to retailers or warehouse. |
+Main agents:
 
-**Daily step order** (same sequence every day):
+- **CustomerAgent:** generates random demand and places orders.
+- **RetailerAgent:** fulfills customer demand from local inventory and reorders from the warehouse.
+- **WarehouseAgent:** fulfills retailer replenishment orders and orders production from the manufacturer.
+- **ManufacturerAgent:** produces goods with a daily capacity limit and handles production backlog.
+- **LogisticsAgent:** manages shipments and delivery delays between tiers.
 
-1. Customers generate demand and place orders  
-2. Retailers process customer orders  
-3. Retailers place replenishment orders  
-4. Warehouses process retailer orders (ship via logistics)  
-5. Warehouses place manufacturer orders  
-6. Manufacturers produce (ship via logistics)  
-7. Logistics marks due shipments  
-8. Deliveries increase destination inventory  
-9. Metrics collected  
+Daily simulation order:
 
-**Policies:** simple `(reorder point, target stock)` by default; optional forecast-based policy with moving-average demand and safety stock (`config.py`).
+1. Customers generate demand.
+2. Retailers fulfill customer orders.
+3. Retailers place replenishment orders.
+4. The warehouse processes retailer orders.
+5. The warehouse orders from the manufacturer if needed.
+6. The manufacturer produces goods.
+7. Logistics updates in-transit shipments.
+8. Deliveries increase destination inventory.
+9. Metrics are collected.
 
-**Analysis pipeline:** `run.py` → baseline + parameter experiments → `analysis.py` (metrics, bullwhip) → `visualization.py` (plots) → `results/`.
+Main files:
 
-## Project Layout
+- `config.py` - simulation parameters.
+- `model.py` - simulation orchestration.
+- `agents/` - agent classes.
+- `analysis.py` - metrics, bullwhip calculations, and experiments.
+- `visualization.py` - plot generation.
+- `run.py` - main entry point.
+- `results/` - generated CSV files, report, and plots.
 
-```text
-agents/          # Customer, Retailer, Warehouse, Manufacturer, Logistics
-model.py         # SupplyChainModel and step orchestration
-config.py        # Simulation parameters
-run.py           # Entry point
-analysis.py      # Metrics, experiments, report
-visualization.py # Plots
-results/         # CSV data, report.md, plots/
-```
+## 3. Instructions for Starting the Project
 
-## Running
+Run the project from the project directory:
 
 ```bash
+cd /Users/cristi/master/multi-agent-systems/multi-agent-systems-project
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python run.py
 ```
 
-Writes metrics and summaries to `results/data/`, notes to `results/report.md`, and plots to `results/plots/` when Matplotlib is available.
+Running `run.py` executes the baseline simulation and the parameter experiments. It saves the outputs to:
 
-## Key Results Files
-
-- `results/data/baseline_metrics.csv` — daily time series  
-- `results/data/experiment_summary.csv` — baseline vs. reorder points, lead times, capacity, forecast policy  
-- `results/plots/` — demand, inventory, tier orders, stockouts, holding cost, bullwhip  
-
-See `PROJECT_REQUIREMENTS.md` for the full specification and implementation checklist.
+- `results/data/` - CSV metrics and experiment summaries.
+- `results/report.md` - generated report notes.
+- `results/plots/` - generated charts, if Matplotlib is available.
