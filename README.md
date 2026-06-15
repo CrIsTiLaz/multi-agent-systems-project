@@ -12,6 +12,10 @@ The goal is to observe how decentralized agents, each using local information, a
 
 The project is a discrete-time multi-agent simulation. One simulation step represents one day. Agents communicate only with neighboring supply chain tiers rather than using a central optimizer.
 
+![Supply chain simulation architecture](results/supply_chain_simulation_architecture.svg)
+
+Supply chain flow:
+
 ```text
 Customer -> Retailer -> Warehouse -> Manufacturer
               ^             ^              |
@@ -47,18 +51,19 @@ Main files:
 - `analysis.py` - metrics, bullwhip calculations, and experiments.
 - `visualization.py` - plot generation.
 - `run.py` - main entry point.
-- `results/` - generated CSV files, report, and plots.
+- `results/` - generated CSV files, report, plots, and architecture diagram.
 
 ## 3. Instructions for Starting the Project
 
-Run the project from the project directory:
+Run the project from the project root directory:
 
 ```bash
-cd /Users/cristi/master/multi-agent-systems/multi-agent-systems-project
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python run.py
 ```
+
+On Windows, use `.venv\Scripts\python` instead of `.venv/bin/python`.
 
 Running `run.py` executes the baseline simulation and the parameter experiments. It saves the outputs to:
 
