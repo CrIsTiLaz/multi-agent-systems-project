@@ -70,3 +70,13 @@ Running `run.py` executes the baseline simulation and the parameter experiments.
 - `results/data/` - CSV metrics and experiment summaries.
 - `results/report.md` - generated report notes.
 - `results/plots/` - generated charts, if Matplotlib is available.
+
+## 4. Demo Video
+
+The project demo is available as `demo-compressed.mp4` in the repository root.
+
+GitHub may not play the video directly in the browser. If it does not open on Git, download the file and watch it locally:
+
+1. Open `demo-compressed.mp4` on GitHub
+2. Click **Download** or **View raw**
+3. Play the downloaded file on your computer
